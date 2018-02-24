@@ -109,7 +109,6 @@ public class MainActivity extends AppCompatActivity
             if (location != null) {
                 System.out.println("Provider " + provider + " has been selected.");
                 onLocationChanged(location);
-                mapFragment.getMapAsync(this); // on met à jour la carte avec onMapReadyCallback()
             } else {
                 latituteField.setText("Location not available");
                 longitudeField.setText("Location not available");
@@ -129,6 +128,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    // Fonction automatiquement appelée lorsqu'il y a un changement de localisation
     @Override
     public void onLocationChanged(Location location) {
         // On récupère la latitude et la longitude et on set les TextViews
@@ -136,6 +136,7 @@ public class MainActivity extends AppCompatActivity
         lng = (int) (location.getLongitude());
         latituteField.setText(String.valueOf(lat));
         longitudeField.setText(String.valueOf(lng));
+        mapFragment.getMapAsync(this); // on met à jour la carte avec onMapReadyCallback()
     }
 
     /**
@@ -156,6 +157,57 @@ public class MainActivity extends AppCompatActivity
         mMap.moveCamera(CameraUpdateFactory.newLatLng(my_position)); // On déplace la caméra de la map vers notre position
     }
 
+    /* Request updates at startup */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            ActivityCompat.requestPermissions(this, permissions, USER_LOCATION_REQUESTCODE);
+            return;
+        }
+        else
+        {
+            // Si on les a, on récupère ses coordonnées actuelles
+            Location location = locationManager.getLastKnownLocation(provider);
+            // Initialize the location fields
+            if (location != null) {
+                System.out.println("Provider " + provider + " has been selected.");
+                onLocationChanged(location);
+                mapFragment.getMapAsync(this); // on met à jour la carte avec onMapReadyCallback()
+            } else {
+                latituteField.setText("Location not available");
+                longitudeField.setText("Location not available");
+            }
+        }
+        locationManager.requestLocationUpdates(provider, 400, 1, this);
+    }
+
+    /* Remove the locationlistener updates when Activity is paused */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            ActivityCompat.requestPermissions(this, permissions, USER_LOCATION_REQUESTCODE);
+            return;
+        }
+        locationManager.removeUpdates(this);
+    }
 
 
 
