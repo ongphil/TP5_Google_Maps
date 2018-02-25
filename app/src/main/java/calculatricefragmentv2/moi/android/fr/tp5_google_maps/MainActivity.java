@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity
 
     private Button mylocation_button;
 
+    private boolean default_map = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +73,7 @@ public class MainActivity extends AppCompatActivity
         Criteria criteria = new Criteria();
         provider = locationManager.getBestProvider(criteria, false);
 
+        mapFragment.getMapAsync(this); // on met par défaut la position de l'ECE
 
         findCurrentLocation();
 
@@ -134,8 +137,8 @@ public class MainActivity extends AppCompatActivity
         // On récupère la latitude et la longitude et on set les TextViews
         lat = (int) (location.getLatitude());
         lng = (int) (location.getLongitude());
-        latituteField.setText(String.valueOf(lat));
-        longitudeField.setText(String.valueOf(lng));
+        latituteField.setText("Latitude : " + String.valueOf(lat));
+        longitudeField.setText("Longitude : " + String.valueOf(lng));
         mapFragment.getMapAsync(this); // on met à jour la carte avec onMapReadyCallback()
     }
 
@@ -152,9 +155,22 @@ public class MainActivity extends AppCompatActivity
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.clear(); // On clear la map
-        LatLng my_position = new LatLng(lat, lng);
-        mMap.addMarker(new MarkerOptions().position(my_position).title("My position")); // on ajoute le marqueur à notre position
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(my_position)); // On déplace la caméra de la map vers notre position
+        if(default_map)
+        {
+            LatLng default_position = new LatLng(48,2);
+            mMap.addMarker(new MarkerOptions().position(default_position).title("ECE Paris")); // on ajoute le marqueur à notre position
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(default_position)); // On déplace la caméra de la map vers notre position
+            latituteField.setText("Latitude : 48");
+            longitudeField.setText("Longitude : 2");
+            default_map = false;
+        }
+        else
+        {
+            LatLng my_position = new LatLng(lat, lng);
+            mMap.addMarker(new MarkerOptions().position(my_position).title("My position")); // on ajoute le marqueur à notre position
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(my_position)); // On déplace la caméra de la map vers notre position
+        }
+
     }
 
     /* Request updates at startup */
