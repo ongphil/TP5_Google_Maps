@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
         {
-            mMap.setMyLocationEnabled(true);
+
             mapFragment.getMapAsync(this);
         }
         else // Si on ne les as pas, on les demande et ça appelle ensuite "onRequestPermissionsResult"
@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED)
             {
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                    mMap.setMyLocationEnabled(true);
+
                     mapFragment.getMapAsync(this);
 
                 }
@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+        /*if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
         {
             findCurrentLocation();
         }
@@ -197,7 +197,7 @@ public class MainActivity extends AppCompatActivity
         {
             ActivityCompat.requestPermissions(this, permissions, USER_LOCATION_REQUESTCODE);
         }
-        locationManager.requestLocationUpdates(provider, 400, 1, this);
+        locationManager.requestLocationUpdates(provider, 400, 1, this);*/
     }
 
     /* Remove the locationlistener updates when Activity is paused */
