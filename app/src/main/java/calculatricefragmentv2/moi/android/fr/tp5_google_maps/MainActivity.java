@@ -9,7 +9,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -18,33 +17,36 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, LocationListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, LocationListener {
 
     private GoogleMap mMap;
     private SupportMapFragment mapFragment;
-    private TextView latituteField;
-    private TextView longitudeField;
+
+    private TextView currentLatText;
+    private TextView currentLngText;
+    private TextView markerLatText;
+    private TextView markerLngText;
+
+    private Marker currentMarker;
+    private Marker clickedMarker;
+
     private LocationManager locationManager;
     private String provider;
-    private int lat;
-    private int lng;
 
+    String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
     private int USER_LOCATION_REQUESTCODE = 1;
-
-    private Button mylocation_button;
-
-    private boolean default_map = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,8 +65,10 @@ public class MainActivity extends AppCompatActivity
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        latituteField = (TextView) findViewById(R.id.lat_text);
-        longitudeField = (TextView) findViewById(R.id.long_text);
+        currentLatText = (TextView) findViewById(R.id.currentLatText);
+        currentLngText = (TextView) findViewById(R.id.currentLngText);
+        markerLatText = (TextView) findViewById(R.id.markerLatText);
+        markerLngText = (TextView) findViewById(R.id.markerLngText);
 
         // Get the location manager
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -73,50 +77,18 @@ public class MainActivity extends AppCompatActivity
         Criteria criteria = new Criteria();
         provider = locationManager.getBestProvider(criteria, false);
 
-        mapFragment.getMapAsync(this); // on met par défaut la position de l'ECE
 
-        findCurrentLocation();
-
-        mylocation_button = (Button) findViewById(R.id.mlocation_button);
-
-        mylocation_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                findCurrentLocation();
-            }
-        });
-
-    }
-
-    public void findCurrentLocation() {
-        // On vérifie si on a les permissions de l'utilisateur pour partager sa localisation
-        String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-
-            // Si on ne les as pas, on les demande et ça appelle ensuite "onRequestPermissionsResult"
-            ActivityCompat.requestPermissions(this, permissions, USER_LOCATION_REQUESTCODE);
-            return;
-        }
-        else
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
         {
-            // Si on les a, on récupère ses coordonnées actuelles
-            Location location = locationManager.getLastKnownLocation(provider);
-            // Initialize the location fields
-            if (location != null) {
-                System.out.println("Provider " + provider + " has been selected.");
-                onLocationChanged(location);
-            } else {
-                latituteField.setText("Location not available");
-                longitudeField.setText("Location not available");
-            }
+            mMap.setMyLocationEnabled(true);
+            mapFragment.getMapAsync(this);
         }
+        else // Si on ne les as pas, on les demande et ça appelle ensuite "onRequestPermissionsResult"
+        {
+            ActivityCompat.requestPermissions(this, permissions, USER_LOCATION_REQUESTCODE);
+        }
+
+
     }
 
     @Override
@@ -126,20 +98,13 @@ public class MainActivity extends AppCompatActivity
             // Si on a bien reçu les permissions de l'utilisateur
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED)
             {
-                findCurrentLocation();
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    mMap.setMyLocationEnabled(true);
+                    mapFragment.getMapAsync(this);
+
+                }
             }
         }
-    }
-
-    // Fonction automatiquement appelée lorsqu'il y a un changement de localisation
-    @Override
-    public void onLocationChanged(Location location) {
-        // On récupère la latitude et la longitude et on set les TextViews
-        lat = (int) (location.getLatitude());
-        lng = (int) (location.getLongitude());
-        latituteField.setText("Latitude : " + String.valueOf(lat));
-        longitudeField.setText("Longitude : " + String.valueOf(lng));
-        mapFragment.getMapAsync(this); // on met à jour la carte avec onMapReadyCallback()
     }
 
     /**
@@ -154,54 +119,83 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        mMap.clear(); // On clear la map
-        if(default_map)
-        {
-            LatLng default_position = new LatLng(48,2);
-            mMap.addMarker(new MarkerOptions().position(default_position).title("ECE Paris")); // on ajoute le marqueur à notre position
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(default_position)); // On déplace la caméra de la map vers notre position
-            latituteField.setText("Latitude : 48");
-            longitudeField.setText("Longitude : 2");
-            default_map = false;
-        }
-        else
-        {
-            LatLng my_position = new LatLng(lat, lng);
-            mMap.addMarker(new MarkerOptions().position(my_position).title("My position")); // on ajoute le marqueur à notre position
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(my_position)); // On déplace la caméra de la map vers notre position
-        }
+        mMap.setOnMapClickListener(this);
+        findCurrentLocation();
 
     }
+
+    public void findCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+        {
+            Location location = locationManager.getLastKnownLocation(provider);
+
+            if(location != null) {
+                int lat = (int) (location.getLatitude());
+                int lng = (int) (location.getLongitude());
+
+                if(currentMarker != null)
+                {
+                    currentMarker.remove();
+                }
+
+                LatLng position = new LatLng(lat, lng);
+                currentLatText.setText(String.valueOf(lat));
+                currentLngText.setText(String.valueOf(lng));
+                currentMarker = mMap.addMarker(new MarkerOptions().position(position).title("Ma position").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+            }
+            else
+            {
+                currentLatText.setText("Erreur");
+                currentLngText.setText("Erreur");
+            }
+        }
+        else // Si on ne les as pas, on les demande et ça appelle ensuite "onRequestPermissionsResult"
+        {
+            Toast toast = Toast.makeText(this, "Veuillez autoriser la localisation", Toast.LENGTH_LONG);
+            toast.show();
+        }
+    }
+
+
+
+    // Fonction automatiquement appelée lorsqu'il y a un changement de localisation
+    @Override
+    public void onLocationChanged(Location location) {
+        findCurrentLocation();
+    }
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+        if(latLng != null) {
+
+            if(clickedMarker != null)
+            {
+                clickedMarker.remove();
+            }
+
+            clickedMarker = mMap.addMarker(new MarkerOptions().position(latLng).title("Marqueur cliqué").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+
+            int lat = (int) (latLng.latitude);
+            int lng = (int) (latLng.longitude);
+
+            markerLatText.setText(String.valueOf(lat));
+            markerLngText.setText(String.valueOf(lng));
+        }
+    }
+
+
 
     /* Request updates at startup */
     @Override
     protected void onResume() {
         super.onResume();
-        String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            ActivityCompat.requestPermissions(this, permissions, USER_LOCATION_REQUESTCODE);
-            return;
-        }
-        else
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
         {
-            // Si on les a, on récupère ses coordonnées actuelles
-            Location location = locationManager.getLastKnownLocation(provider);
-            // Initialize the location fields
-            if (location != null) {
-                System.out.println("Provider " + provider + " has been selected.");
-                onLocationChanged(location);
-                mapFragment.getMapAsync(this); // on met à jour la carte avec onMapReadyCallback()
-            } else {
-                latituteField.setText("Location not available");
-                longitudeField.setText("Location not available");
-            }
+            findCurrentLocation();
+        }
+        else // Si on ne les as pas, on les demande et ça appelle ensuite "onRequestPermissionsResult"
+        {
+            ActivityCompat.requestPermissions(this, permissions, USER_LOCATION_REQUESTCODE);
         }
         locationManager.requestLocationUpdates(provider, 400, 1, this);
     }
@@ -211,16 +205,9 @@ public class MainActivity extends AppCompatActivity
     protected void onPause() {
         super.onPause();
         String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            ActivityCompat.requestPermissions(this, permissions, USER_LOCATION_REQUESTCODE);
-            return;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+
         }
         locationManager.removeUpdates(this);
     }
@@ -291,4 +278,6 @@ public class MainActivity extends AppCompatActivity
     public void onProviderDisabled(String s) {
 
     }
+
+
 }
