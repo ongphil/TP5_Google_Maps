@@ -255,12 +255,11 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_calculatrice) {
-            Uri calculatriceUri = Uri.parse("calculatricefragmentv2.moi.android.fr.tp4_fragments_calculatricev2://calculatrice");
-            Intent intent = new Intent(Intent.ACTION_VIEW, calculatriceUri);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
+            Intent launchIntent = getPackageManager().getLaunchIntentForPackage("calculatricefragmentv2.moi.android.fr.tp4_fragments_calculatricev2");
+            if (launchIntent != null) {
+                startActivity(launchIntent);//null pointer check in case package name was not found
+            }
         }
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
