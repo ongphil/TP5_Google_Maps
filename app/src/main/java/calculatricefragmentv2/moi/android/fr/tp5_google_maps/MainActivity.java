@@ -77,7 +77,17 @@ public class MainActivity extends AppCompatActivity
         // Define the criteria how to select the location provider -> use
         // default
         Criteria criteria = new Criteria();
-        provider = locationManager.getBestProvider(criteria, false);
+        //provider = locationManager.getBestProvider(criteria, false);
+        if(locationManager.isProviderEnabled(locationManager.NETWORK_PROVIDER)){
+            provider = locationManager.NETWORK_PROVIDER;
+        }
+        else if(locationManager.isProviderEnabled(locationManager.GPS_PROVIDER)){
+            provider = locationManager.GPS_PROVIDER;
+        }
+        else{
+            Toast toast = Toast.makeText(this,"Please activate either Cellular or Wifi", Toast.LENGTH_LONG);
+            toast.show();
+        }
 
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
@@ -191,15 +201,15 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        /*if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+        // Ce if semble obligatoire pour que requestLocationUpdates fonctionne, même s'il est bizarre
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)
         {
-            findCurrentLocation();
         }
         else // Si on ne les as pas, on les demande et ça appelle ensuite "onRequestPermissionsResult"
         {
             ActivityCompat.requestPermissions(this, permissions, USER_LOCATION_REQUESTCODE);
         }
-        locationManager.requestLocationUpdates(provider, 400, 1, this);*/
+        locationManager.requestLocationUpdates(provider, 400, 1, this);
     }
 
     /* Remove the locationlistener updates when Activity is paused */
