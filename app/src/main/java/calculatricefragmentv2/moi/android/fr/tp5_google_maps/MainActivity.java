@@ -141,8 +141,8 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 LatLng position = new LatLng(lat, lng);
-                currentLatText.setText(String.valueOf(lat));
-                currentLngText.setText(String.valueOf(lng));
+                currentLatText.setText("Lat : " + String.valueOf(lat));
+                currentLngText.setText("Lng : " + String.valueOf(lng));
                 currentMarker = mMap.addMarker(new MarkerOptions().position(position).title("Ma position").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
             }
             else
@@ -180,8 +180,8 @@ public class MainActivity extends AppCompatActivity
             int lat = (int) (latLng.latitude);
             int lng = (int) (latLng.longitude);
 
-            markerLatText.setText(String.valueOf(lat));
-            markerLngText.setText(String.valueOf(lng));
+            markerLatText.setText("Lat : " + String.valueOf(lat));
+            markerLngText.setText("Lng : " + String.valueOf(lng));
         }
     }
 
