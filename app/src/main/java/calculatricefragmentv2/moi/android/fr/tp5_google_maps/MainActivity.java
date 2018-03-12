@@ -74,13 +74,11 @@ public class MainActivity extends AppCompatActivity
 
         // Get the location manager
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        // Define the criteria how to select the location provider -> use
-        // default
-        Criteria criteria = new Criteria();
-        //provider = locationManager.getBestProvider(criteria, false);
+
+        // Test if we can access the location throught Wifi or 4G
         if(locationManager.isProviderEnabled(locationManager.NETWORK_PROVIDER)){
             provider = locationManager.NETWORK_PROVIDER;
-        }
+        } // Otherwise, use GPS even if its less precise
         else if(locationManager.isProviderEnabled(locationManager.GPS_PROVIDER)){
             provider = locationManager.GPS_PROVIDER;
         }
@@ -144,7 +142,7 @@ public class MainActivity extends AppCompatActivity
             if(location != null) {
                 int lat = (int) (location.getLatitude());
                 int lng = (int) (location.getLongitude());
-
+                // Remove the previous marker if there was any
                 if(currentMarker != null)
                 {
                     currentMarker.remove();
@@ -219,11 +217,9 @@ public class MainActivity extends AppCompatActivity
         String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
         {
-
         }
         locationManager.removeUpdates(this);
     }
-
 
 
     @Override
